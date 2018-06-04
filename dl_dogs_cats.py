@@ -10,7 +10,7 @@ from prj_function import create_dictionary, model_acc_loss
 ###### import pour affichage des résultats
 # from report_result import visu_img_non_predict, report_conf_mat
 ###################################################################
-
+import json
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout 
@@ -27,6 +27,7 @@ print("dl_dogs_cats.py : Chargement des variables d'entrée")
 # path_data = "/media/tostakit/Partage/google-drive/data_scientist/dogs_cats/data/"
 # path_data = "/home/tostakit/Téléchargements/dogsvscats/"
 
+path_project = "/home/tostakit/Téléchargements/dogsvscats/"
 path_data = "/home/tostakit/Téléchargements/dogsvscats/sample/"
 path_tb_log = "/media/tostakit/Partage/dev/pyprojects/1.0-data_scientist/dogs_cats/tb_logs/"
 
@@ -60,6 +61,14 @@ params = {'dim': (img_rows, img_cols),
 print("dl_dogs_cats.py : Création des dictionnaires partition et labels")
 # Datasets
 partition, labels = create_dictionary(path=path_data)
+
+# Save partition and labels dict in json files
+# http://stackabuse.com/reading-and-writing-json-to-a-file-in-python/
+with open(path_project+'partition.json', 'w') as outfile:  
+    json.dump(partition, outfile)
+with open(path_project+'labels.json', 'w') as outfile:  
+    json.dump(labels, outfile)
+
 
 print("dl_dogs_cats.py : Création des objets training_generator et validation_generator avec la class_data_generator")
 # Generators
@@ -117,6 +126,15 @@ history = model.fit_generator(generator=training_generator,
                     verbose=2,
                     callbacks=[dg.TrainValTensorBoard(log_dir=path_tb_log, write_graph=False)])
 
+# serialize model to JSON
+model_json = model.to_json()
+with open(path_project+"model.json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+model.save_weights(path_project+"model.h5")
+print("dl_dogs_cats.py : Saved model to disk")
+
+
 print("dl_dogs_cats.py : History Fit")
 print(history.history.keys())
 
@@ -126,6 +144,7 @@ print("dl_dogs_cats.py : Model accuracy and loss")
 model_acc_loss(history.history['acc'], history.history['val_acc'],
                history.history['loss'], history.history['val_loss'],
                n_epochs)
+
  
 print("dl_dogs_cats.py : Predict Model")
 predict = model.predict_generator(generator=validation_generator,
@@ -140,3 +159,4 @@ scores = model.evaluate_generator(generator=validation_generator,
 #                        workers = n_thread,
 #                        verbose = 0)
 print("Perte: %.2f Erreur: %.2f%%" % (scores[0], 100 - scores[1] * 100))
+
