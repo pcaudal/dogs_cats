@@ -10,7 +10,7 @@ import os
 
 #path_project = "/home/tostakit/Téléchargements/dogsvscats/"
 path_project = os.path.dirname(os.path.abspath(__file__))
-path_orig_img = "/home/tostakit/Téléchargements/dogsvscats/"
+path_orig_img = "/media/tostakit/Partage/dev/datasets/dogsvscats/"
 path_data = path_orig_img+"data/"
 path_data_train = path_data+"train/"
 path_data_test = path_data+"test/"
@@ -30,7 +30,7 @@ path_json_retrain = path_json+'retrain/'
 print("param_json.py : Chemin du projet : ",os.path.dirname(os.path.abspath(__file__)))
 
 # Choose True if the model has to train the complete dataset
-b_complete_train = True
+b_complete_train = False
 # Number of dog and cat images trained at the first launch
 # """ Makes sure that the total number images modulo n_img_package = 0"""
 # n_img_package = 10
@@ -42,11 +42,11 @@ labels_file = 'img_labels.csv'
 # Name of the json file which save the status of the images files used to train
 img_status = 'img_status.json'
 # Model json file name to save
-model_json = "model_complete.json"
+model_json = "model.json"
 # Weightd of the nerons h5 file name to save
-weigths_h5 = "model_complete.h5"
+weigths_h5 = "weights.h5"
 # Model history json file name to save
-history_json = "history_complete.json"
+history_json = "history.json"
 # Config project file name to save
 config_project = "config_project.json"
 # Input Image Dimensions : width, length and number of channels is 3 for RGB png pics
@@ -56,7 +56,7 @@ n_classes = 2
 # Number of Convolutional Filters to use
 n_filters = 32
 # Number of epochs
-n_epochs = 50
+n_epochs = 5
 # Cluster of processor used or not
 b_cluster = False
 # Number of processor used (1 if cluster_used = False)
