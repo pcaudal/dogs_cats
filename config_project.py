@@ -36,7 +36,7 @@ b_complete_train = False
 # n_img_package = 10
 # Number of image in the batch
 """ Makes sure that the total number images modulo batch_size = 0"""
-batch_size = 32
+batch_size = 64
 # Name of the labels csv file
 labels_file = 'img_labels.csv'
 # Name of the json file which save the status of the images files used to train
@@ -54,7 +54,7 @@ img_rows, img_cols, n_channels = 128, 128, 3
 # Number of classes (for mnist, 10 (0 to 9)
 n_classes = 2
 # Number of Convolutional Filters to use
-n_filters = 64
+n_filters = 32
 # Number of epochs
 n_epochs = 1
 # Cluster of processor used or not
