@@ -50,13 +50,13 @@ history_json = "history.json"
 # Config project file name to save
 config_project = "config_project.json"
 # Input Image Dimensions : width, length and number of channels is 3 for RGB png pics
-img_rows, img_cols, n_channels = 100, 100, 3
+img_rows, img_cols, n_channels = 128, 128, 3
 # Number of classes (for mnist, 10 (0 to 9)
 n_classes = 2
 # Number of Convolutional Filters to use
-n_filters = 32
+n_filters = 64
 # Number of epochs
-n_epochs = 5
+n_epochs = 1
 # Cluster of processor used or not
 b_cluster = False
 # Number of processor used (1 if cluster_used = False)

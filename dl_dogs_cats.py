@@ -8,10 +8,11 @@
 #import data_generator as dg
 #from prj_function import create_dictionary, create_sub_dictionary, model_acc_loss
 #from prj_function import design_model, save_model_history, load_model, pred_eval_model
-from prj_function import design_model, save_model_history, load_model_history
+from prj_function import design_model, save_model_history, load_model_history, plot_confusion_matrix
 import json
 import os
 import shutil as sh
+from glob import glob
 
 import numpy as np
 #import pandas as pd
@@ -54,6 +55,10 @@ b_complete_train = dict_params['b_complete_train']
 path_data_train = dict_params['path']['data_train']
 # Directory where the test images are saved in folder cats and dogs
 path_data_test = dict_params['path']['data_test']
+# Directory where the test images are saved in folder cats and dogs
+path_data_test_dogs = dict_params['path']['data_test_dogs']
+# Directory where the test images are saved in folder cats and dogs
+path_data_test_cats = dict_params['path']['data_test_cats']
 
 path_data = dict_params['path']['data']
 # Directory where the tensorboard logs are saved
@@ -187,14 +192,27 @@ Y_pred = model.predict_generator(generator=validation_generator,
                                  steps = n_data_test // batch_size+1,
                                  use_multiprocessing=b_cluster,
                                  workers=n_processor,
-                                 verbose=2)
+                                 verbose=1)
 
 y_pred = np.argmax(Y_pred, axis=1)
+
+class_names = ['Dogs', 'Cats']
 print('dl_dogs_cats.py : Confusion Matrix')
-print(confusion_matrix(validation_generator.classes, y_pred))
+#print(confusion_matrix(validation_generator.classes, y_pred))
+cnf_matrix = confusion_matrix(validation_generator.classes, y_pred)
+
+# Plot non-normalized confusion matrix
+plt.figure(1)
+plot_confusion_matrix(cnf_matrix, classes=class_names,
+                      title='Confusion matrix, without normalization')
+
+# Plot normalized confusion matrix
+plt.figure(2)
+plot_confusion_matrix(cnf_matrix, classes=class_names, normalize=True,
+                      title='Normalized confusion matrix')
+
 print('dl_dogs_cats.py : Classification Report')
-target_names = ['Cats', 'Dogs']
-print(classification_report(validation_generator.classes, y_pred, target_names=target_names))
+print(classification_report(validation_generator.classes, y_pred, target_names=class_names))
 
 print("dl_dogs_cats.py : Evaluate Model")
 scores = model.evaluate_generator(generator=validation_generator,
@@ -214,36 +232,51 @@ with open(path_json+file_history_json, 'r') as json_file:
     history = json.load(json_file)
 
 x_epochs = range(len(history['acc']))
-fig = plt.figure()
+plt.figure(3)
 plt.gcf().subplots_adjust(hspace=0.5)
-ax1 = fig.add_subplot(211)
-ax1.plot(x_epochs, history['acc'], label='Train', color='blue')
-ax1.plot(x_epochs, history['val_acc'], label='Test', color='red')
-ax1.set_xlim([0, len(history['acc'])])
-ax1.set_title('model accuracy')
-ax1.set_ylabel('accuracy')
-ax1.legend(loc=4)
-ax2 = fig.add_subplot(212)#, sharex=ax1)
-ax2.plot(x_epochs, history['loss'], label='Train', color='blue')
-ax2.plot(x_epochs, history['val_loss'], label='Test', color='red')
-ax2.set_title('model loss')
-ax2.set_ylabel('loss')
-ax2.set_xlabel('epoch')
-ax2.legend (loc='best')
-fig.show()
+plt.subplot(211)
+plt.plot(x_epochs, history['acc'], label='Train', color='blue')
+plt.plot(x_epochs, history['val_acc'], label='Test', color='red')
+plt.xlim([0, len(history['acc'])])
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.legend(loc=4)
+plt.subplot(212)#, sharex=ax1)
+plt.plot(x_epochs, history['loss'], label='Train', color='blue')
+plt.plot(x_epochs, history['val_loss'], label='Test', color='red')
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend (loc='best')
 
-# j=0
-# 
-# for i in np.random.choice(np.where(validation_generator.classes!=y_pred)[0], size=6) :
-#     j=j+1
-#     img = X_test[i,:] 
-#     img = img.reshape(28,28)
-#     
-#     plt.subplot(2,3,j)
-#     plt.axis('off')
-#     plt.imshow(img,cmap = cm.binary)
-#     plt.title('Prediction: %i' % pred[i])
+# Affichage des images qui n'ont pas été prédites correctement
+plt.figure(4)
+img_ext = "."+dict_params['img']['extension']
+files_dog_path = os.path.join(path_data_test_dogs, 'dog.*'+img_ext)
+files_cat_path = os.path.join(path_data_test_cats, 'cat.*'+img_ext)
+files_dog = sorted(glob(files_dog_path))
+files_cat = sorted(glob(files_cat_path))
+offset_img = n_data_test//2
+j=0
+for i in np.random.choice(np.where(validation_generator.classes!=y_pred)[0], size=6) :
+    j=j+1
+    # indice pour les chiens compris entre 0 et 199 dans les images de test
+    if i < offset_img:
+        img_name = files_dog[i].split('/')[-1]
+        img_dir = path_data_test_dogs
+    else:
+        img_name = files_cat[i-offset_img].split('/')[-1]
+        img_dir = path_data_test_cats
+    
+    #print('dl_dogs_cats.py : Nom de la ', i, 'e image non prédite : ', img_dir+img_name) 
+    plt.subplot(2,3,j)
+    plt.axis('off')
+    img_disp = plt.imread(img_dir+img_name)
+    plt.imshow(img_disp)#,cmap = cm.binary)
+    plt.title('Prediction: %i' % y_pred[i])
 
+plt.show()
 
 print("dl_dogs_cats.py : ****** End of the process to retain a model")
+
 
